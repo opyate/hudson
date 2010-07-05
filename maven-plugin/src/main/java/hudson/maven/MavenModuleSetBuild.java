@@ -710,24 +710,29 @@ public class MavenModuleSetBuild extends AbstractMavenBuild<MavenModuleSet,Maven
 
         void preModule(MavenProject project) throws InterruptedException, IOException, hudson.maven.agent.AbortException {
             ModuleName name = new ModuleName(project);
-            MavenBuildProxy2 proxy = proxies.get(name);
+            //MavenBuildProxy2 proxy = proxies.get(name);
+            MavenBuildProxy2 proxy = proxies.entrySet().iterator().next().getValue();
             listener.getLogger().flush();   // make sure the data until here are all written
             proxy.start();
-            for (MavenReporter r : reporters.get(name))
+            List<MavenReporter> rs = reporters.entrySet().iterator().next().getValue();
+            for (MavenReporter r : rs)
                 if(!r.preBuild(proxy,project,listener))
                     throw new hudson.maven.agent.AbortException(r+" failed");
         }
 
         void postModule(MavenProject project) throws InterruptedException, IOException, hudson.maven.agent.AbortException {
             ModuleName name = new ModuleName(project);
-            MavenBuildProxy2 proxy = proxies.get(name);
-            List<MavenReporter> rs = reporters.get(name);
+            //MavenBuildProxy2 proxy = proxies.get(name);
+            MavenBuildProxy2 proxy = proxies.entrySet().iterator().next().getValue();
+            //List<MavenReporter> rs = reporters.get(name);
+            List<MavenReporter> rs = reporters.entrySet().iterator().next().getValue();
             if(rs==null) { // probe for issue #906
                 throw new AssertionError("reporters.get("+name+")==null. reporters="+reporters+" proxies="+proxies);
             }
-            for (MavenReporter r : rs)
+            for (MavenReporter r : rs) {
                 if(!r.postBuild(proxy,project,listener))
                     throw new hudson.maven.agent.AbortException(r+" failed");
+            }
             proxy.setExecutedMojos(executedMojos.get(name));
             listener.getLogger().flush();   // make sure the data until here are all written
             proxy.end();
@@ -736,8 +741,10 @@ public class MavenModuleSetBuild extends AbstractMavenBuild<MavenModuleSet,Maven
 
         void preExecute(MavenProject project, MojoInfo mojoInfo) throws IOException, InterruptedException, hudson.maven.agent.AbortException {
             ModuleName name = new ModuleName(project);
-            MavenBuildProxy proxy = proxies.get(name);
-            for (MavenReporter r : reporters.get(name))
+            //MavenBuildProxy proxy = proxies.get(name);
+            MavenBuildProxy2 proxy = proxies.entrySet().iterator().next().getValue();
+            List<MavenReporter> rs = reporters.entrySet().iterator().next().getValue();
+            for (MavenReporter r : rs)
                 if(!r.preExecute(proxy,project,mojoInfo,listener))
                     throw new hudson.maven.agent.AbortException(r+" failed");
 
@@ -748,12 +755,15 @@ public class MavenModuleSetBuild extends AbstractMavenBuild<MavenModuleSet,Maven
             ModuleName name = new ModuleName(project);
 
             List<ExecutedMojo> mojoList = executedMojos.get(name);
+            System.out.println("[JUAN] executedMojos: " + executedMojos);
             if(mojoList==null)
                 executedMojos.put(name,mojoList=new ArrayList<ExecutedMojo>());
             mojoList.add(new ExecutedMojo(mojoInfo,System.currentTimeMillis()-mojoStartTime));
 
-            MavenBuildProxy2 proxy = proxies.get(name);
-            for (MavenReporter r : reporters.get(name))
+            //MavenBuildProxy2 proxy = proxies.get(name);
+            MavenBuildProxy2 proxy = proxies.entrySet().iterator().next().getValue();
+            List<MavenReporter> rs = reporters.entrySet().iterator().next().getValue();
+            for (MavenReporter r : rs)
                 if(!r.postExecute(proxy,project,mojoInfo,listener,exception))
                     throw new hudson.maven.agent.AbortException(r+" failed");
             if(exception!=null)
@@ -762,8 +772,10 @@ public class MavenModuleSetBuild extends AbstractMavenBuild<MavenModuleSet,Maven
 
         void onReportGenerated(MavenProject project, MavenReportInfo report) throws IOException, InterruptedException, hudson.maven.agent.AbortException {
             ModuleName name = new ModuleName(project);
-            MavenBuildProxy proxy = proxies.get(name);
-            for (MavenReporter r : reporters.get(name))
+            //MavenBuildProxy proxy = proxies.get(name);
+            MavenBuildProxy2 proxy = proxies.entrySet().iterator().next().getValue();
+            List<MavenReporter> rs = reporters.entrySet().iterator().next().getValue();
+            for (MavenReporter r : rs)
                 if(!r.reportGenerated(proxy,project,report,listener))
                     throw new hudson.maven.agent.AbortException(r+" failed");
         }
